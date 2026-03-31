@@ -8,11 +8,10 @@ import { siteContent } from "../data/siteContent";
 import { clearCurrentUser, getCart, getCurrentUser } from "../utils/storage";
 import { fetchProducts } from "../services/productService";
 
-export default function HomePage() {
+export default function HomePage({ currentUser, setCurrentUser, onLogout }) {
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
-  const [currentUser, setCurrentUser] = useState(getCurrentUser());
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -33,14 +32,6 @@ export default function HomePage() {
     loadProducts();
   }, [selectedCategory]);
 
-  useEffect(() => {
-    const syncUser = () => {
-      setCurrentUser(getCurrentUser());
-    };
-
-    window.addEventListener("storage", syncUser);
-    return () => window.removeEventListener("storage", syncUser);
-  }, []);
 
   return (
     <>
@@ -49,11 +40,7 @@ export default function HomePage() {
         cartCount={cartCount}
         onCartClick={() => setIsCartOpen(true)}
         onOpenAuth={() => setIsAuthOpen(true)}
-        onLogout={() => {
-          clearCurrentUser();
-          setCurrentUser(null);
-          alert("Bạn đã đăng xuất.");
-        }}
+        onLogout={onLogout}
       />
 
       <QuickCart

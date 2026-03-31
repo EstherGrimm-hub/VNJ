@@ -5,9 +5,10 @@ const {
   createCoupon,
   validateCoupon
 } = require("../controllers/couponController");
+const { authenticate, requireAdmin } = require("../middleware/auth");
 
 router.get("/", getCoupons);
-router.post("/", createCoupon);
+router.post("/", authenticate, requireAdmin, createCoupon);
 router.post("/validate", validateCoupon);
 
 module.exports = router;

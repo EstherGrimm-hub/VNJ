@@ -19,7 +19,24 @@ export default function QuickCart({ isOpen, cart, onClose, onRemoveItem }) {
           cart.map((item, index) => (
             <div className="cart-item" key={`${item.id}-${item.size}-${index}`}>
               <div className="cart-item-thumb">
-                <img src={item.image || item.images?.[0]} alt={item.name} />
+                {item.image || (item.images && item.images[0]) ? (
+                  <img src={item.image || item.images[0]} alt={item.name} />
+                ) : (
+                  <div
+                    style={{
+                      width: "60px",
+                      height: "60px",
+                      background: "#eee",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontSize: "10px",
+                      color: "#666"
+                    }}
+                  >
+                    No Image
+                  </div>
+                )}
               </div>
 
               <div className="cart-item-info">

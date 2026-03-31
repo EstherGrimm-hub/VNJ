@@ -19,6 +19,12 @@ export async function loginUser(email, password) {
       };
     }
 
+    // Save token and user
+    if (data.token) {
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("currentUser", JSON.stringify(data.user));
+    }
+
     return data;
   } catch (error) {
     console.error("loginUser error:", error);
@@ -48,6 +54,12 @@ export async function registerUser(payload) {
       };
     }
 
+    // Save token and user
+    if (data.token) {
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("currentUser", JSON.stringify(data.user));
+    }
+
     return data;
   } catch (error) {
     console.error("registerUser error:", error);
@@ -60,4 +72,5 @@ export async function registerUser(payload) {
 
 export function logoutUser() {
   localStorage.removeItem("currentUser");
+  localStorage.removeItem("token");
 }

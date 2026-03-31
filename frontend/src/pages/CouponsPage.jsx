@@ -1,190 +1,144 @@
-import React, { useEffect, useMemo, useState } from "react";
-import Navbar from "../components/Navbar";
-import Footer from "../components/Footer";
-import QuickCart from "../components/QuickCart";
-import { getCart, saveCart, getCurrentUser } from "../utils/storage";
+import React, { useEffect, useState } from "react";
 import { createCoupon, fetchCoupons } from "../services/couponService";
+import { getCurrentUser } from "../utils/storage";
 
 export default function CouponsPage() {
-  const [cart, setCart] = useState(getCart());
-  const [isCartOpen, setIsCartOpen] = useState(false);
   const [coupons, setCoupons] = useState([]);
   const [loading, setLoading] = useState(true);
-
-  const [name, setName] = useState("");
-  const [discountPercent, setDiscountPercent] = useState("");
-  const [expireInDays, setExpireInDays] = useState("");
+  const [form, setForm] = useState({
+    code: "",
+    name: "",
+    discountPercent: "",
+    minOrderValue: "",
+    validUntil: "",
+  });
 
   const currentUser = getCurrentUser();
 
-  const cartCount = useMemo(() => {
-    return cart.reduce((sum, item) => sum + item.quantity, 0);
-  }, [cart]);
-
   const loadCoupons = async () => {
-    setLoading(true);
-    const result = await fetchCoupons();
-    setCoupons(result.coupons || []);
-    setLoading(false);
+    try {
+      setLoading(true);
+      const result = await fetchCoupons();
+      const couponsWithRemainingDays = (result.coupons || []).map(c => {
+        const remaining = Math.ceil((new Date(c.expireAt || c.validUntil) - new Date()) / (1000 * 60 * 60 * 24));
+        return { ...c, remainingDays: remaining > 0 ? remaining : 0 };
+      });
+      setCoupons(couponsWithRemainingDays);
+    } catch (error) {
+      console.error("loadCoupons error:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
     loadCoupons();
   }, []);
 
-  const handleCreateCoupon = async (e) => {
-    e.preventDefault();
-
-    const result = await createCoupon({
-      name,
-      discountPercent,
-      expireInDays
-    });
-
-    if (!result.success) {
-      alert(result.message);
-      return;
-    }
-
-    alert("Tạo coupon thành công.");
-    setName("");
-    setDiscountPercent("");
-    setExpireInDays("");
-    loadCoupons();
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
   };
 
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const result = await createCoupon(form);
+      if (result.success) {
+        alert("Đã tạo mã giảm giá thành công!");
+        setForm({ code: "", name: "", discountPercent: "", minOrderValue: "", validUntil: "" });
+        loadCoupons();
+      } else {
+        alert(result.message || "Có lỗi xảy ra khi tạo coupon.");
+      }
+    } catch (error) {
+      console.error("Create coupon error:", error);
+      alert("Lỗi kết nối khi tạo coupon.");
+    }
+  };
+
+  if (!currentUser || currentUser.role !== "admin") {
+    return (
+      <section className="admin-denied container" style={{ padding: "40px 0" }}>
+        <h2>Access Denied</h2>
+        <p>Chỉ tài khoản Admin mới được truy cập trang này.</p>
+      </section>
+    );
+  }
+
   return (
-    <>
-      <Navbar
-        currentUser={currentUser}
-        cartCount={cartCount}
-        onCartClick={() => setIsCartOpen(true)}
-      />
+    <section className="container" style={{ padding: "30px 0 50px" }}>
+      <div className="admin-panel" style={{ marginBottom: "20px" }}>
+        <div className="admin-panel-header">
+          <h4>Create New Coupon</h4>
+        </div>
+        <form onSubmit={handleSubmit} className="add-product-form" style={{ padding: "16px" }}>
+          <div className="add-product-grid three-cols">
+            <div className="form-group">
+              <label>Coupon Code</label>
+              <input name="code" value={form.code} onChange={handleChange} required />
+            </div>
+            <div className="form-group">
+              <label>Coupon Name</label>
+              <input name="name" value={form.name} onChange={handleChange} required />
+            </div>
+            <div className="form-group">
+              <label>Discount (%)</label>
+              <input name="discountPercent" type="number" value={form.discountPercent} onChange={handleChange} required />
+            </div>
+          </div>
+          <div className="add-product-grid three-cols">
+            <div className="form-group">
+              <label>Min Order Value</label>
+              <input name="minOrderValue" type="number" value={form.minOrderValue} onChange={handleChange} required />
+            </div>
+            <div className="form-group">
+              <label>Valid Until</label>
+              <input name="validUntil" type="date" value={form.validUntil} onChange={handleChange} required />
+            </div>
+          </div>
+          <button type="submit" className="admin-black-btn">Create Coupon</button>
+        </form>
+      </div>
 
-      <QuickCart
-        isOpen={isCartOpen}
-        cart={cart}
-        onClose={() => setIsCartOpen(false)}
-        onRemoveItem={(targetItem) => {
-          const updatedCart = cart.filter(
-            (item) =>
-              !(
-                item.id === targetItem.id &&
-                item.image === targetItem.image &&
-                item.size === targetItem.size
-              )
-          );
-
-          setCart(updatedCart);
-          saveCart(updatedCart);
-        }}
-      />
-
-      <main>
-        {!currentUser || currentUser.role !== "admin" ? (
-          <section className="admin-denied container" style={{ padding: "40px 0" }}>
-            <h2>Access Denied</h2>
-            <p>Chỉ tài khoản Admin mới được truy cập Coupon Code.</p>
-          </section>
+      <div className="admin-panel">
+        <div className="admin-panel-header">
+          <h4>Existing Coupons</h4>
+        </div>
+        {loading ? (
+          <p>Loading coupons...</p>
         ) : (
-          <section className="container" style={{ padding: "30px 0 50px" }}>
-            <div className="admin-panel" style={{ marginBottom: "20px" }}>
-              <div className="admin-panel-header">
-                <h4>Create Coupon</h4>
-              </div>
-
-              <form
-                onSubmit={handleCreateCoupon}
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
-                  gap: "12px"
-                }}
-              >
-                <input
-                  type="text"
-                  placeholder="Coupon name"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  style={inputStyle}
-                />
-
-                <input
-                  type="number"
-                  placeholder="Discount %"
-                  value={discountPercent}
-                  onChange={(e) => setDiscountPercent(e.target.value)}
-                  style={inputStyle}
-                />
-
-                <input
-                  type="number"
-                  placeholder="Expire in days"
-                  value={expireInDays}
-                  onChange={(e) => setExpireInDays(e.target.value)}
-                  style={inputStyle}
-                />
-
-                <button type="submit" className="admin-black-btn" style={{ width: "fit-content" }}>
-                  Create Coupon
-                </button>
-              </form>
-            </div>
-
-            <div className="admin-panel">
-              <div className="admin-panel-header">
-                <h4>Coupon List</h4>
-              </div>
-
-              {loading ? (
-                <p>Loading coupons...</p>
+          <table className="admin-table">
+            <thead>
+              <tr>
+                <th>No</th>
+                <th>Code</th>
+                <th>Name</th>
+                <th>Discount</th>
+                <th>Min Order</th>
+                <th>Remaining Days</th>
+              </tr>
+            </thead>
+            <tbody>
+              {coupons.length ? (
+                coupons.map((coupon, index) => (
+                  <tr key={coupon.id || coupon._id || index}>
+                    <td>{index + 1}</td>
+                    <td>{coupon.code}</td>
+                    <td>{coupon.name}</td>
+                    <td>{coupon.discountPercent}%</td>
+                    <td>{coupon.minOrderValue.toLocaleString("vi-VN")} VNĐ</td>
+                    <td>{coupon.remainingDays}</td>
+                  </tr>
+                ))
               ) : (
-                <table className="admin-table">
-                  <thead>
-                    <tr>
-                      <th>No</th>
-                      <th>Name</th>
-                      <th>Code</th>
-                      <th>Discount</th>
-                      <th>Min Order</th>
-                      <th>Remaining Days</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {coupons.length ? (
-                      coupons.map((coupon, index) => (
-                        <tr key={coupon.id}>
-                          <td>{index + 1}</td>
-                          <td>{coupon.name}</td>
-                          <td>{coupon.code}</td>
-                          <td>{coupon.discountPercent}%</td>
-                          <td>{coupon.minOrderValue.toLocaleString("vi-VN")} VNĐ</td>
-                          <td>{coupon.remainingDays}</td>
-                        </tr>
-                      ))
-                    ) : (
-                      <tr>
-                        <td colSpan="6">Chưa có coupon nào.</td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
+                <tr>
+                  <td colSpan="6">Chưa có mã giảm giá nào.</td>
+                </tr>
               )}
-            </div>
-          </section>
+            </tbody>
+          </table>
         )}
-      </main>
-
-      <Footer />
-    </>
+      </div>
+    </section>
   );
 }
-
-const inputStyle = {
-  width: "100%",
-  height: "42px",
-  border: "1px solid #ddd",
-  borderRadius: "10px",
-  padding: "0 14px",
-  outline: "none"
-};

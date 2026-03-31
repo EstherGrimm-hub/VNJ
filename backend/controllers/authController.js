@@ -1,4 +1,7 @@
 const User = require("../models/User");
+const jwt = require('jsonwebtoken');
+
+const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret_here';
 
 const login = async (req, res) => {
   try {
@@ -25,6 +28,7 @@ const login = async (req, res) => {
 
     return res.json({
       success: true,
+      token: jwt.sign({ id: user._id, role: user.role }, JWT_SECRET, { expiresIn: '1h' }),
       user: {
         id: user._id,
         name: user.name,
@@ -72,6 +76,7 @@ const register = async (req, res) => {
 
     return res.status(201).json({
       success: true,
+      token: jwt.sign({ id: newUser._id, role: newUser.role }, JWT_SECRET, { expiresIn: '1h' }),
       user: {
         id: newUser._id,
         name: newUser.name,

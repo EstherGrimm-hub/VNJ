@@ -1,5 +1,13 @@
 const API_URL = "http://localhost:5000/api/products";
 
+const getAuthHeaders = () => {
+  const token = localStorage.getItem("token");
+  return {
+    "Content-Type": "application/json",
+    ...(token ? { "Authorization": `Bearer ${token}` } : {})
+  };
+};
+
 export async function fetchProducts(category = "") {
   try {
     const url = category
@@ -34,9 +42,7 @@ export async function createProduct(payload) {
   try {
     const res = await fetch(API_URL, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
+      headers: getAuthHeaders(),
       body: JSON.stringify(payload)
     });
 

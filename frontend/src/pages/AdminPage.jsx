@@ -2,7 +2,13 @@ import React, { useEffect, useMemo, useState } from "react";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import QuickCart from "../components/QuickCart";
-import { Link } from "react-router-dom";
+import OrdersManagement from "../pages/OrdersManagement";
+import CustomersPage from "../pages/CustomersPage";
+import CouponsPage from "../pages/CouponsPage";
+import AddProductPage from "../pages/AddProductPage";
+import AdminRolePage from "../pages/AdminRolePage";
+import ProductListPage from "../pages/ProductListPage";
+import { Link, useSearchParams } from "react-router-dom";
 import {
   getCart,
   saveCart,
@@ -12,15 +18,22 @@ import {
 import { fetchOrders } from "../services/orderService";
 import { fetchProducts } from "../services/productService";
 
-export default function AdminPage() {
+
+
+export default function AdminPage({ currentUser, onLogout }) {
   const [cart, setCart] = useState(getCart());
   const [isCartOpen, setIsCartOpen] = useState(false);
-
+  const [searchParams, setSearchParams] = useSearchParams();
+  const activeTab = searchParams.get("tab") || "dashboard";
   const [orders, setOrders] = useState([]);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const currentUser = getCurrentUser();
+  const handleTabChange = (tabName) => {
+    setSearchParams({ tab: tabName });
+  };
+
+  // const currentUser = getCurrentUser(); // Đã được truyền vào từ props
 
   const cartCount = useMemo(() => {
     return cart.reduce((sum, item) => sum + (Number(item.quantity) || 0), 0);
@@ -70,18 +83,31 @@ export default function AdminPage() {
   const productSummaryMap = {};
 
   orders.forEach((order) => {
+    const orderSubtotal = Number(order.subtotal) || 0;
+    const orderDiscount = Number(order.discountAmount) || 0;
+
     (order.items || []).forEach((item) => {
       if (!productSummaryMap[item.name]) {
         productSummaryMap[item.name] = {
           name: item.name,
           totalQty: 0,
-          revenue: 0
+          revenue: 0,
         };
       }
 
-      productSummaryMap[item.name].totalQty += Number(item.quantity) || 0;
-      productSummaryMap[item.name].revenue +=
-        (Number(item.price) || 0) * (Number(item.quantity) || 0);
+      const itemPrice = Number(item.price) || 0;
+      const itemQty = Number(item.quantity) || 0;
+      const itemTotalValue = itemPrice * itemQty;
+
+      productSummaryMap[item.name].totalQty += itemQty;
+
+      // Tính toán doanh thu thực tế của sản phẩm,
+      // bằng cách phân bổ đều coupon (nếu có) cho từng sản phẩm trong đơn hàng.
+      let itemRevenue = itemTotalValue;
+      if (orderSubtotal > 0 && orderDiscount > 0) {
+        itemRevenue -= (itemTotalValue / orderSubtotal) * orderDiscount;
+      }
+      productSummaryMap[item.name].revenue += itemRevenue;
     });
   });
 
@@ -97,6 +123,7 @@ export default function AdminPage() {
         currentUser={currentUser}
         cartCount={cartCount}
         onCartClick={() => setIsCartOpen(true)}
+        onLogout={onLogout}
       />
 
       <QuickCart
@@ -126,13 +153,7 @@ export default function AdminPage() {
           >
             <h2>Access Denied</h2>
             <p>Chỉ tài khoản Admin mới được truy cập Dashboard.</p>
-            <p>Hãy đăng nhập bằng:</p>
-            <p>
-              <strong>Email:</strong> admin@vnj.com
-            </p>
-            <p>
-              <strong>Password:</strong> 123456
-            </p>
+            <p>Hãy đăng nhập bằng tài khoản Admin để truy cập trang này.</p>
           </section>
         ) : loading ? (
           <section className="container" style={{ padding: "40px 0" }}>
@@ -141,284 +162,379 @@ export default function AdminPage() {
         ) : (
           <section className="admin-dashboard">
             <aside className="admin-sidebar">
+              {/* ======================================= */}
+              {/* ĐÃ CHỈNH SỬA: SỬ DỤNG ?tab= ĐỂ ĐIỀU HƯỚNG */}
+              {/* ======================================= */}
               <div className="admin-menu-group">
                 <p className="admin-menu-title">Main menu</p>
-                <a href="#" className="admin-menu-item active">
+                <Link 
+                  to="?tab=dashboard" 
+                  className={`admin-menu-item ${activeTab === 'dashboard' ? 'active' : ''}`}
+                >
                   Dashboard
-                </a>
-
-                <Link to="/admin/orders" className="admin-menu-item">
+                </Link>
+                <Link 
+                  to="?tab=orders" 
+                  className={`admin-menu-item ${activeTab === 'orders' ? 'active' : ''}`}
+                >
                   Order Management
                 </Link>
-                <Link to="/admin/customers" className="admin-menu-item">
+                <Link 
+                  to="?tab=customers" 
+                  className={`admin-menu-item ${activeTab === 'customers' ? 'active' : ''}`}
+                >
                   Customers
                 </Link>
-                <Link to="/admin/coupons" className="admin-menu-item">
+                <Link 
+                  to="?tab=coupons" 
+                  className={`admin-menu-item ${activeTab === 'coupons' ? 'active' : ''}`}
+                >
                   Coupon Code
                 </Link>
               </div>
 
               <div className="admin-menu-group">
                 <p className="admin-menu-title">Product</p>
-                <Link to="/admin/products/add" className="admin-menu-item">
-                  Add Products
+                <Link 
+                  to="?tab=products" 
+                  className={`admin-menu-item ${activeTab === 'products' ? 'active' : ''}`}
+                >
+                  Products
                 </Link>
-                
               </div>
 
               <div className="admin-menu-group">
                 <p className="admin-menu-title">Admin</p>
-                <Link to="/admin/roles" className="admin-menu-item">
-  Admin role
-</Link>
-                
+                <Link 
+                  to="?tab=roles" 
+                  className={`admin-menu-item ${activeTab === 'roles' ? 'active' : ''}`}
+                >
+                  Admin role
+                </Link>
               </div>
             </aside>
 
             <div className="admin-content">
-              <div className="admin-topbar">
-                <h2>Dashboard</h2>
-                <div className="admin-topbar-right">
-                  <input
-                    type="text"
-                    placeholder="Search data, users, or reports"
-                  />
-                  <i className="fa-regular fa-bell"></i>
-                  <div className="admin-avatar">
-                    {currentUser?.name?.charAt(0) || "A"}
-                  </div>
-                </div>
-              </div>
+              {/* ==================================================== */}
+              {/* KỸ THUẬT KEEP-ALIVE: ẨN HIỆN TAB BẰNG DISPLAY: NONE  */}
+              {/* ==================================================== */}
 
-              <div className="admin-main-grid">
-                <div className="admin-left">
-                  <div className="admin-stats">
-                    <div className="admin-stat-card">
-                      <p>Total Income</p>
-                      <h3>{formatPrice(totalSales)}</h3>
-                      <span>Updated from paid orders</span>
-                    </div>
+              {/* TAB 1: DASHBOARD (Toàn bộ code cũ của bạn nằm trong thẻ div này) */}
+              <div style={{ display: activeTab === 'dashboard' ? 'block' : 'none' }}>
+                
 
-                    <div className="admin-stat-card">
-                      <p>Total Orders</p>
-                      <h3>{totalOrders}</h3>
-                      <span>Auto updated after checkout</span>
-                    </div>
+                <div className="admin-main-grid">
+                  <div className="admin-left">
+                    <div className="admin-stats">
+                      <div className="admin-stat-card">
+                        <p>Total Income</p>
+                        <h3>{formatPrice(totalSales)}</h3>
+                        <span>Updated from paid orders</span>
+                      </div>
 
-                    <div className="admin-stat-card">
-                      <p>Pending / Canceled</p>
-                      <h3>
-                        {pendingOrders} / {canceledOrders}
-                      </h3>
-                      <span>Live from order storage</span>
-                    </div>
-                  </div>
+                      <div className="admin-stat-card">
+                        <p>Total Orders</p>
+                        <h3>{totalOrders}</h3>
+                        <span>Auto updated after checkout</span>
+                      </div>
 
-                  <div className="admin-panel admin-report-panel">
-                    <div className="admin-panel-header">
-                      <h4>Revenue - Last 7 Days ( $ )</h4>
-                      <button type="button">Details</button>
-                    </div>
-
-                    <div className="admin-chart-placeholder">
-                      <div className="simple-chart">
-                        {renderRevenueBars(revenueLast7Days)}
+                      <div className="admin-stat-card">
+                        <p>Pending / Canceled</p>
+                        <h3>
+                          {pendingOrders} / {canceledOrders}
+                        </h3>
+                        <span>Live from order storage</span>
                       </div>
                     </div>
-                  </div>
 
-                  <div className="admin-panel">
-                    <div className="admin-panel-header">
-                      <h4>Transactions</h4>
-                      <button type="button">Latest</button>
+                    <div className="admin-panel admin-report-panel">
+                      <div className="admin-panel-header">
+                        <h4>Revenue - Last 7 Days ( $ )</h4>
+                        <button type="button">Details</button>
+                      </div>
+
+                      <div className="admin-chart-placeholder">
+                        <div className="simple-chart">
+                          {renderRevenueBars(revenueLast7Days)}
+                        </div>
+                      </div>
                     </div>
 
-                    <table className="admin-table">
-                      <thead>
-                        <tr>
-                          <th>No</th>
-                          <th>Customer</th>
-                          <th>Order Date</th>
-                          <th>Status</th>
-                          <th>Amount</th>
-                        </tr>
-                      </thead>
+                    <div className="admin-panel">
+                      <div className="admin-panel-header">
+                        <h4>Transactions</h4>
+                        <button type="button">Latest</button>
+                      </div>
 
-                      <tbody>
-                        {latestTransactions.length ? (
-                          latestTransactions.map((order, index) => (
-                            <tr key={order._id || order.id || index}>
-                              <td>{index + 1}</td>
-                              <td>{order.customerName}</td>
-                              <td>
-                                {order.createdAt
-                                  ? new Date(order.createdAt).toLocaleString()
-                                  : ""}
-                              </td>
-                              <td>{order.status}</td>
-                              <td>{formatPrice(Number(order.total) || 0)}</td>
-                            </tr>
-                          ))
-                        ) : (
+                      <table className="admin-table">
+                        <thead>
                           <tr>
-                            <td colSpan="5">Chưa có giao dịch nào.</td>
+                            <th>No</th>
+                            <th>Customer</th>
+                            <th>Order Date</th>
+                            <th>Status</th>
+                            <th>Amount</th>
                           </tr>
-                        )}
-                      </tbody>
-                    </table>
-                  </div>
+                        </thead>
 
-                  <div className="admin-panel">
-                    <div className="admin-panel-header">
-                      <h4>Best selling product</h4>
-                      <button type="button">Auto</button>
+                        <tbody>
+                          {latestTransactions.length ? (
+                            latestTransactions.map((order, index) => (
+                              <tr key={order._id || order.id || index}>
+                                <td>{index + 1}</td>
+                                {/* ĐÃ CHỈNH SỬA: LIÊN KẾT CHÉO SANG TAB CUSTOMERS */}
+                                <td>
+                                  <span 
+                                    onClick={() => handleTabChange('customers')}
+                                    style={{ 
+                                      cursor: "pointer", 
+                                      color: "#007bff", 
+                                      fontWeight: "600" 
+                                    }}
+                                    title="View this customer details"
+                                  >
+                                    {order.customerName}
+                                  </span>
+                                </td>
+                                <td>
+                                  {order.createdAt
+                                    ? new Date(order.createdAt).toLocaleString()
+                                    : ""}
+                                </td>
+                                <td>{order.status}</td>
+                                <td>{formatPrice(Number(order.total) || 0)}</td>
+                              </tr>
+                            ))
+                          ) : (
+                            <tr>
+                              <td colSpan="5">Chưa có giao dịch nào.</td>
+                            </tr>
+                          )}
+                        </tbody>
+                      </table>
                     </div>
 
-                    <table className="admin-table">
-                      <thead>
-                        <tr>
-                          <th>Product</th>
-                          <th>Total Order Qty</th>
-                          <th>Status</th>
-                          <th>Revenue</th>
-                        </tr>
-                      </thead>
+                    <div className="admin-panel">
+                      <div className="admin-panel-header">
+                        <h4>Best selling product</h4>
+                        <button type="button">Auto</button>
+                      </div>
 
-                      <tbody>
+                      <table className="admin-table">
+                        <thead>
+                          <tr>
+                            <th>Product</th>
+                            <th>Total Order Qty</th>
+                            <th>Status</th>
+                            <th>Revenue</th>
+                          </tr>
+                        </thead>
+
+                        <tbody>
+                          {bestSellingProducts.length ? (
+                            bestSellingProducts.map((item, index) => {
+                              const matchedProduct = products.find(
+                                (p) => p.name === item.name
+                              );
+                              const productImage =
+                                matchedProduct?.images?.[0] || null;
+
+                              return (
+                                <tr key={item.name || index}>
+                                  <td>
+                                    <div className="admin-product-cell">
+                                      {productImage ? (
+                                        <img src={productImage} alt={item.name} />
+                                      ) : (
+                                        <div 
+                                          className="admin-product-placeholder"
+                                          style={{
+                                            width: '40px',
+                                            height: '40px',
+                                            backgroundColor: '#f0f0f0',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            fontSize: '10px',
+                                            color: '#666',
+                                            borderRadius: '4px'
+                                          }}
+                                        >
+                                          No Image
+                                        </div>
+                                      )}
+                                      <div>
+                                        <strong>{item.name}</strong>
+                                        <span>Top seller</span>
+                                      </div>
+                                    </div>
+                                  </td>
+                                  <td>{item.totalQty}</td>
+                                  <td>
+                                    <span className="admin-status in-stock">
+                                      In Report
+                                    </span>
+                                  </td>
+                                  <td>{formatPrice(item.revenue)}</td>
+                                </tr>
+                              );
+                            })
+                          ) : (
+                            <tr>
+                              <td colSpan="4">
+                                Chưa có dữ liệu sản phẩm bán chạy.
+                              </td>
+                            </tr>
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+
+                  <div className="admin-right">
+                    <div className="admin-panel">
+                      <div className="admin-panel-header">
+                        <h4>Users in last 30 minutes</h4>
+                      </div>
+                      <h3
+                        style={{
+                          fontSize: "22px",
+                          margin: "0 0 6px",
+                          fontWeight: 800
+                        }}
+                      >
+                        21.5K
+                      </h3>
+                      <p
+                        style={{
+                          fontSize: "10px",
+                          color: "#888",
+                          margin: "0 0 8px"
+                        }}
+                      >
+                        Users per minute
+                      </p>
+                      <div className="admin-mini-chart">
+                        {[12, 18, 25, 15, 20, 30, 28, 35, 22, 18, 26].map(
+                          (v, i) => (
+                            <span key={i} style={{ height: v }}></span>
+                          )
+                        )}
+                      </div>
+                      <button className="admin-black-btn">View Insight</button>
+                    </div>
+
+                    <div className="admin-panel">
+                      <div className="admin-panel-header">
+                        <h4>Top Products</h4>
+                        <a href="#">All product</a>
+                      </div>
+
+                      <div className="admin-product-list">
                         {bestSellingProducts.length ? (
                           bestSellingProducts.map((item, index) => {
                             const matchedProduct = products.find(
                               (p) => p.name === item.name
                             );
                             const productImage =
-                              matchedProduct?.images?.[0] || "";
+                              matchedProduct?.images?.[0] || null;
 
                             return (
-                              <tr key={item.name || index}>
-                                <td>
-                                  <div className="admin-product-cell">
+                              <div
+                                className="admin-product-row"
+                                key={item.name || index}
+                              >
+                                <div className="admin-product-info">
+                                  {productImage ? (
                                     <img src={productImage} alt={item.name} />
-                                    <div>
-                                      <strong>{item.name}</strong>
-                                      <span>Top seller</span>
+                                  ) : (
+                                    <div 
+                                      className="admin-product-placeholder"
+                                      style={{
+                                        width: '40px',
+                                        height: '40px',
+                                        backgroundColor: '#f0f0f0',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        fontSize: '10px',
+                                        color: '#666',
+                                        borderRadius: '4px'
+                                      }}
+                                    >
+                                      No Image
                                     </div>
+                                  )}
+                                  <div>
+                                    <span>{item.name}</span>
+                                    <small>{item.totalQty} sold</small>
                                   </div>
-                                </td>
-                                <td>{item.totalQty}</td>
-                                <td>
-                                  <span className="admin-status in-stock">
-                                    In Report
-                                  </span>
-                                </td>
-                                <td>{formatPrice(item.revenue)}</td>
-                              </tr>
+                                </div>
+                                <strong>{formatPrice(item.revenue)}</strong>
+                              </div>
                             );
                           })
                         ) : (
-                          <tr>
-                            <td colSpan="4">
-                              Chưa có dữ liệu sản phẩm bán chạy.
-                            </td>
-                          </tr>
+                          <div className="admin-product-row">
+                            <span>No data yet</span>
+                            <strong>0</strong>
+                          </div>
                         )}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-
-                <div className="admin-right">
-                  <div className="admin-panel">
-                    <div className="admin-panel-header">
-                      <h4>Users in last 30 minutes</h4>
-                    </div>
-                    <h3
-                      style={{
-                        fontSize: "22px",
-                        margin: "0 0 6px",
-                        fontWeight: 800
-                      }}
-                    >
-                      21.5K
-                    </h3>
-                    <p
-                      style={{
-                        fontSize: "10px",
-                        color: "#888",
-                        margin: "0 0 8px"
-                      }}
-                    >
-                      Users per minute
-                    </p>
-                    <div className="admin-mini-chart">
-                      {[12, 18, 25, 15, 20, 30, 28, 35, 22, 18, 26].map(
-                        (v, i) => (
-                          <span key={i} style={{ height: v }}></span>
-                        )
-                      )}
-                    </div>
-                    <button className="admin-black-btn">View Insight</button>
-                  </div>
-
-                  <div className="admin-panel">
-                    <div className="admin-panel-header">
-                      <h4>Top Products</h4>
-                      <a href="#">All product</a>
+                      </div>
                     </div>
 
-                    <div className="admin-product-list">
-                      {bestSellingProducts.length ? (
-                        bestSellingProducts.map((item, index) => {
-                          const matchedProduct = products.find(
-                            (p) => p.name === item.name
-                          );
-                          const productImage =
-                            matchedProduct?.images?.[0] || "";
+                    <div className="admin-panel">
+                      <div className="admin-panel-header">
+                        <h4>Total Paid Revenue</h4>
+                        <a href="#">Finance</a>
+                      </div>
 
-                          return (
-                            <div
-                              className="admin-product-row"
-                              key={item.name || index}
-                            >
-                              <div className="admin-product-info">
-                                <img src={productImage} alt={item.name} />
-                                <div>
-                                  <span>{item.name}</span>
-                                  <small>{item.totalQty} sold</small>
-                                </div>
-                              </div>
-                              <strong>{formatPrice(item.revenue)}</strong>
-                            </div>
-                          );
-                        })
-                      ) : (
-                        <div className="admin-product-row">
-                          <span>No data yet</span>
-                          <strong>0</strong>
+                      <div className="admin-category-list">
+                        <div className="admin-category-item">
+                          {formatPrice(totalSales)}
                         </div>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="admin-panel">
-                    <div className="admin-panel-header">
-                      <h4>Total Paid Revenue</h4>
-                      <a href="#">Finance</a>
-                    </div>
-
-                    <div className="admin-category-list">
-                      <div className="admin-category-item">
-                        {formatPrice(totalSales)}
-                      </div>
-                      <div className="admin-category-item">
-                        Orders: {totalOrders}
-                      </div>
-                      <div className="admin-category-item">
-                        Role: {currentUser.role}
+                        <div className="admin-category-item">
+                          Orders: {totalOrders}
+                        </div>
+                        <div className="admin-category-item">
+                          Role: {currentUser.role}
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
+
+              {/* TAB 2: QUẢN LÝ ĐƠN HÀNG */}
+              <div style={{ display: activeTab === 'orders' ? 'block' : 'none' }}>
+                  <OrdersManagement orders={orders} setActiveTab={handleTabChange} />
+              </div>
+
+              {/* TAB 3: QUẢN LÝ KHÁCH HÀNG */}
+              <div style={{ display: activeTab === 'customers' ? 'block' : 'none' }}>
+                  <CustomersPage />
+              </div>
+
+              {/* TAB 4: MÃ GIẢM GIÁ */}
+              <div style={{ display: activeTab === 'coupons' ? 'block' : 'none' }}>
+                  <CouponsPage />
+              </div>
+
+              {/* TAB: DANH SÁCH SẢN PHẨM */}
+              <div style={{ display: activeTab === 'products' ? 'block' : 'none' }}>
+                  <ProductListPage />
+              </div>
+
+              {/* TAB 5: THÊM SẢN PHẨM */}
+              <div style={{ display: activeTab === 'add-product' ? 'block' : 'none' }}>
+                  <AddProductPage />
+              </div>
+
+              {/* TAB 6: ADMIN ROLES */}
+              <div style={{ display: activeTab === 'roles' ? 'block' : 'none' }}>
+                  <AdminRolePage />
+              </div>
+
             </div>
           </section>
         )}

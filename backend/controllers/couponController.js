@@ -62,7 +62,14 @@ const getCoupons = async (req, res) => {
 
 const createCoupon = async (req, res) => {
   try {
-    const { name, discountPercent, expireInDays } = req.body;
+    const { code, name, discountPercent, minOrderValue, validUntil } = req.body;
+
+    if (!code || code.trim() === "") {
+      return res.status(400).json({
+        success: false,
+        message: "Mã coupon không được để trống."
+      });
+    }
 
     if (!name || name.trim() === "") {
       return res.status(400).json({
@@ -71,8 +78,15 @@ const createCoupon = async (req, res) => {
       });
     }
 
+    if (!validUntil) {
+      return res.status(400).json({
+        success: false,
+        message: "Ngày hết hạn không được để trống."
+      });
+    }
+
     const discount = Number(discountPercent);
-    const days = Number(expireInDays);
+    const minOrder = Number(minOrderValue || 50);
 
     if (Number.isNaN(discount) || discount < 0 || discount > 100) {
       return res.status(400).json({
@@ -81,22 +95,41 @@ const createCoupon = async (req, res) => {
       });
     }
 
-    if (Number.isNaN(days) || days <= 0) {
+    if (Number.isNaN(minOrder) || minOrder < 0) {
       return res.status(400).json({
         success: false,
-        message: "Số ngày hết hạn phải lớn hơn 0."
+        message: "Giá trị đơn hàng tối thiểu phải >= 0."
       });
     }
 
-    const now = new Date();
-    const expireAt = new Date(now);
-    expireAt.setDate(expireAt.getDate() + days);
+    // Check if code already exists
+    const existingCoupon = await Coupon.findOne({ code: code.trim().toUpperCase() });
+    if (existingCoupon) {
+      return res.status(400).json({
+        success: false,
+        message: "Mã coupon đã tồn tại."
+      });
+    }
+
+    // Parse date and set to end of day (23:59:59) for validation
+    const expireAt = new Date(validUntil);
+    expireAt.setHours(23, 59, 59, 999);
+    
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    if (expireAt < today) {
+      return res.status(400).json({
+        success: false,
+        message: "Ngày hết hạn phải trong tương lai."
+      });
+    }
 
     const newCoupon = await Coupon.create({
-      code: await generateUniqueCouponCode(),
+      code: code.trim().toUpperCase(),
       name: name.trim(),
       discountPercent: discount,
-      minOrderValue: 50,
+      minOrderValue: minOrder,
       expireAt
     });
 

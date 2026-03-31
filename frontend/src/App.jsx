@@ -10,17 +10,14 @@ import CouponsPage from "./pages/CouponsPage";
 import Account from "./pages/Account";
 import AddProductPage from "./pages/AddProductPage";
 import AdminRolePage from "./pages/AdminRolePage";
+import ProductListPage from "./pages/ProductListPage";
+import { getCurrentUser, clearCurrentUser } from "./utils/storage";
 
 export default function App() {
-  const [currentUser, setCurrentUser] = useState(null);
-
-  useEffect(() => {
-    const savedUser = JSON.parse(localStorage.getItem("user"));
-    setCurrentUser(savedUser || null);
-  }, []);
+  const [currentUser, setCurrentUser] = useState(getCurrentUser());
 
   const handleLogout = () => {
-    localStorage.removeItem("user");
+    clearCurrentUser();
     setCurrentUser(null);
     alert("Bạn đã đăng xuất.");
   };
@@ -39,12 +36,29 @@ export default function App() {
       />
       <Route path="/product/:id" element={<ProductPage />} />
       <Route path="/checkout" element={<CheckoutPage />} />
-      <Route path="/admin" element={<AdminPage />} />
+      <Route
+        path="/admin"
+        element={
+          <AdminPage
+            currentUser={currentUser}
+            onLogout={handleLogout}
+          />
+        }
+      />
       <Route path="/admin/orders" element={<OrderManagementPage />} />
       <Route path="/admin/customers" element={<CustomersPage />} />
       <Route path="/admin/coupons" element={<CouponsPage />} />
-      <Route path="/account" element={<Account />} />
+      <Route
+        path="/account"
+        element={
+          <Account
+            currentUser={currentUser}
+            onLogout={handleLogout}
+          />
+        }
+      />
       <Route path="/admin/products/add" element={<AddProductPage />} />
+      <Route path="/admin/products" element={<ProductListPage />} />
       <Route path="/admin/roles" element={<AdminRolePage />} />
 
     </Routes>
