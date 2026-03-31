@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import AuthModal from "../components/AuthModal";
 import QuickCart from "../components/QuickCart";
 import Footer from "../components/Footer";
@@ -10,6 +11,7 @@ import { fetchProducts } from "../services/productService";
 
 export default function HomePage({ currentUser, setCurrentUser, onLogout }) {
   const [selectedCategory, setSelectedCategory] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [products, setProducts] = useState([]);
@@ -21,10 +23,12 @@ export default function HomePage({ currentUser, setCurrentUser, onLogout }) {
     return cart.reduce((sum, item) => sum + item.quantity, 0);
   }, [cart]);
 
+  const navigate = useNavigate();
+
   useEffect(() => {
     const loadProducts = async () => {
       setLoading(true);
-      const result = await fetchProducts(selectedCategory || "");
+      const result = await fetchProducts(selectedCategory || "", "");
       setProducts(result.products || []);
       setLoading(false);
     };
@@ -41,6 +45,13 @@ export default function HomePage({ currentUser, setCurrentUser, onLogout }) {
         onCartClick={() => setIsCartOpen(true)}
         onOpenAuth={() => setIsAuthOpen(true)}
         onLogout={onLogout}
+        searchTerm={searchTerm}
+        onSearchTermChange={(value) => setSearchTerm(value)}
+        onSearch={() => {
+          const trim = searchTerm.trim();
+          if (!trim) return;
+          navigate(`/search?q=${encodeURIComponent(trim)}`);
+        }}
       />
 
       <QuickCart
@@ -121,10 +132,12 @@ export default function HomePage({ currentUser, setCurrentUser, onLogout }) {
             <div className="product-grid">
               {loading ? (
                 <p>Loading products...</p>
+              ) : products.length === 0 ? (
+                <p>Không tìm thấy sản phẩm phù hợp.</p>
               ) : (
                 products.map((product) => (
-  <ProductCard key={product._id || product.id} product={product} />
-))
+                  <ProductCard key={product._id || product.id} product={product} />
+                ))
               )}
             </div>
           </div>

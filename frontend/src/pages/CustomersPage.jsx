@@ -10,6 +10,11 @@ export default function CustomersPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  const [isCustomerModalOpen, setIsCustomerModalOpen] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editingCustomerId, setEditingCustomerId] = useState(null);
+  const [customerForm, setCustomerForm] = useState({ name: "", email: "", password: "" });
+
   const currentUser = getCurrentUser();
 
   useEffect(() => {
@@ -42,60 +47,82 @@ export default function CustomersPage() {
     loadCustomers();
   }, []);
 
-  // Hàm thêm khách hàng
-  const handleAddCustomer = async () => {
-    const name = prompt("Nhập tên khách hàng:");
-    const email = prompt("Nhập email khách hàng:");
-    const password = prompt("Nhập mật khẩu cho khách hàng mới:");
-    if (name && email && password) {
-      try {
-        const token = currentUser?.token || localStorage.getItem("token");
-        const res = await fetch(`http://localhost:5000/api/users`, {
-          method: "POST",
-          headers: { 
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}`
-          },
-          body: JSON.stringify({ name, email, password, role: "customer" }),
-        });
-        const data = await res.json();
-        if (res.ok) {
-          setCustomers([...customers, data]); // Giả định backend trả về user vừa tạo
-          alert("Đã thêm khách hàng thành công!");
-        } else {
-          alert(data.message || "Có lỗi xảy ra khi thêm khách hàng.");
-        }
-      } catch (error) {
-        console.error("Lỗi:", error);
-        alert("Lỗi kết nối khi thêm khách hàng.");
-      }
-    }
+  const openAddCustomerModal = () => {
+    setIsEditMode(false);
+    setEditingCustomerId(null);
+    setCustomerForm({ name: "", email: "", password: "" });
+    setIsCustomerModalOpen(true);
   };
 
-  // Hàm sửa tên khách hàng
-  const handleEditCustomer = async (id, currentName) => {
-    const newName = prompt("Nhập tên mới:", currentName);
-    if (newName && newName.trim() !== "") {
-      try {
-        const token = currentUser?.token || localStorage.getItem("token");
-        const res = await fetch(`http://localhost:5000/api/users/${id}`, {
+  const openEditCustomerModal = (customer) => {
+    setIsEditMode(true);
+    setEditingCustomerId(customer._id || customer.id);
+    setCustomerForm({ name: customer.name || "", email: customer.email || "", password: "" });
+    setIsCustomerModalOpen(true);
+  };
+
+  const closeCustomerModal = () => {
+    setIsCustomerModalOpen(false);
+    setCustomerForm({ name: "", email: "", password: "" });
+    setEditingCustomerId(null);
+    setIsEditMode(false);
+  };
+
+  const handleSaveCustomer = async () => {
+    const name = customerForm.name.trim();
+    const email = customerForm.email.trim();
+    const password = customerForm.password.trim();
+
+    if (!name || !email || (!isEditMode && !password)) {
+      alert("Vui lòng nhập đủ thông tin.");
+      return;
+    }
+
+    try {
+      const token = currentUser?.token || localStorage.getItem("token");
+      if (isEditMode) {
+        const res = await fetch(`http://localhost:5000/api/users/${editingCustomerId}`, {
           method: "PUT",
-          headers: { 
+          headers: {
             "Content-Type": "application/json",
             "Authorization": `Bearer ${token}`
           },
-          body: JSON.stringify({ name: newName }),
+          body: JSON.stringify({ name, email })
         });
-        if (res.ok) {
-          setCustomers(customers.map(c => (c._id === id || c.id === id) ? { ...c, name: newName } : c));
-          alert("Cập nhật tên thành công!");
-        } else {
-          alert("Có lỗi xảy ra khi cập nhật tên.");
+
+        if (!res.ok) {
+          const data = await res.json();
+          throw new Error(data.message || "Cập nhật khách hàng thất bại.");
         }
-      } catch (error) {
-        console.error("Lỗi:", error);
-        alert("Lỗi kết nối khi cập nhật tên.");
+
+        const data = await res.json();
+        const updated = data.user || data;
+        setCustomers(customers.map(c => (c._id === editingCustomerId || c.id === editingCustomerId) ? updated : c));
+        alert("Cập nhật khách hàng thành công!");
+      } else {
+        const res = await fetch(`http://localhost:5000/api/users`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+          },
+          body: JSON.stringify({ name, email, password, role: "customer" })
+        });
+
+        if (!res.ok) {
+          const data = await res.json();
+          throw new Error(data.message || "Thêm khách hàng thất bại.");
+        }
+
+        const data = await res.json();
+        setCustomers([...customers, data.user || data]);
+        alert("Thêm khách hàng thành công!");
       }
+
+      closeCustomerModal();
+    } catch (error) {
+      console.error("Lỗi:", error);
+      alert(error.message || "Lỗi kết nối.");
     }
   };
 
@@ -154,7 +181,7 @@ export default function CustomersPage() {
             <div className="admin-panel" style={{ marginBottom: "20px" }}>
               <div className="admin-panel-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <h4>Customers</h4>
-                <button onClick={handleAddCustomer} className="admin-black-btn" style={{ padding: "8px 16px", width: "auto" }}>+ Thêm KH</button>
+                <button onClick={openAddCustomerModal} className="admin-black-btn" style={{ padding: "8px 16px", width: "auto" }}>+ Thêm KH</button>
               </div>
 
               {loading ? (
@@ -183,7 +210,7 @@ export default function CustomersPage() {
                           <td>{customer.email || "No email"}</td>
                           <td>{customer.role || "customer"}</td>
                           <td>
-                            <button onClick={() => handleEditCustomer(customer._id || customer.id, customer.name)} style={{ marginRight: '10px', color: 'blue', cursor: 'pointer', background: 'none', border: 'none' }}>Sửa</button>
+                            <button onClick={() => openEditCustomerModal(customer)} style={{ marginRight: '10px', color: 'blue', cursor: 'pointer', background: 'none', border: 'none' }}>Sửa</button>
                             <button onClick={() => handleDeleteCustomer(customer._id || customer.id)} style={{ color: 'red', cursor: 'pointer', background: 'none', border: 'none' }}>Xóa</button>
                           </td>
                         </tr>
@@ -200,6 +227,41 @@ export default function CustomersPage() {
           </section>
         )}
       </main>
+
+      {isCustomerModalOpen && (
+        <div className="modal-overlay" style={{
+          position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
+          backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 9999,
+          display: 'flex', justifyContent: 'center', alignItems: 'center'
+        }}>
+          <div style={{
+            width: '100%', maxWidth: '430px', backgroundColor: '#fff', borderRadius: '10px', padding: '20px', boxShadow: '0 8px 24px rgba(0,0,0,0.25)', position: 'relative'
+          }}>
+            <button onClick={closeCustomerModal} style={{ position: 'absolute', top: '14px', right: '14px', border: 'none', background: 'transparent', cursor: 'pointer', fontSize: '18px' }}>&times;</button>
+            <h3>{isEditMode ? 'Chỉnh sửa khách hàng' : 'Thêm khách hàng mới'}</h3>
+
+            <div style={{ marginBottom: '10px' }}>
+              <label>Tên</label>
+              <input type="text" value={customerForm.name} onChange={(e) => setCustomerForm({ ...customerForm, name: e.target.value })} style={{ width: '100%', padding: '8px', marginTop: '4px' }} />
+            </div>
+            <div style={{ marginBottom: '10px' }}>
+              <label>Email</label>
+              <input type="email" value={customerForm.email} onChange={(e) => setCustomerForm({ ...customerForm, email: e.target.value })} style={{ width: '100%', padding: '8px', marginTop: '4px' }} />
+            </div>
+            {!isEditMode && (
+              <div style={{ marginBottom: '10px' }}>
+                <label>Mật khẩu</label>
+                <input type="password" value={customerForm.password} onChange={(e) => setCustomerForm({ ...customerForm, password: e.target.value })} style={{ width: '100%', padding: '8px', marginTop: '4px' }} />
+              </div>
+            )}
+
+            <div style={{ marginTop: '16px', display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+              <button onClick={closeCustomerModal} style={{ padding: '8px 14px', border: '1px solid #ccc', background: '#fff', cursor: 'pointer' }}>Hủy</button>
+              <button onClick={handleSaveCustomer} style={{ padding: '8px 14px', border: 'none', background: '#111', color: '#fff', cursor: 'pointer' }}>{isEditMode ? 'Lưu' : 'Thêm'}</button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

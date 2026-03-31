@@ -8,11 +8,19 @@ const getAuthHeaders = () => {
   };
 };
 
-export async function fetchProducts(category = "") {
+export async function fetchProducts(category = "", search = "") {
   try {
-    const url = category
-      ? `${API_URL}?category=${encodeURIComponent(category)}`
-      : API_URL;
+    const params = new URLSearchParams();
+
+    if (category) {
+      params.append("category", category);
+    }
+
+    if (search) {
+      params.append("search", search);
+    }
+
+    const url = params.toString() ? `${API_URL}?${params.toString()}` : API_URL;
 
     const res = await fetch(url);
     return await res.json();

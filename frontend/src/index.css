@@ -28,3 +28,58 @@ textarea,
 select {
   font: inherit;
 }
+
+/* Dark mode styles */
+:root.dark-mode {
+  --bg-color: #111;
+  --text-color: #f9f9f9;
+  --card-bg: #1d1f24;
+  --border-color: #2d2f36;
+}
+
+body.dark-mode,
+:root.dark-mode body,
+.dark-mode {
+  background: var(--bg-color);
+  color: var(--text-color);
+}
+
+.dark-mode .site-header,
+.dark-mode .main-navbar,
+.dark-mode .page-shell,
+.dark-mode .container,
+.dark-mode .category-card,
+.dark-mode .product-card,
+.dark-mode .quick-cart,
+.dark-mode .footer {
+  background: var(--card-bg);
+  color: var(--text-color);
+  border-color: var(--border-color);
+}
+
+.products-search {
+  margin-bottom: 16px;
+  display: flex;
+  gap: 8px;
+}
+
+.products-search input {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.products-search button {
+  padding: 8px 14px;
+  border: none;
+  background: #333;
+  color: white;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.theme-toggle {
+  background: #111;
+  color: #fff;
+}

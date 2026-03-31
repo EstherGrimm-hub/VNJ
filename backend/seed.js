@@ -1,5 +1,6 @@
 require("dotenv").config();
 const connectDB = require("./config/db");
+const bcrypt = require("bcrypt");
 
 const Product = require("./models/Product");
 const Coupon = require("./models/Coupon");
@@ -29,24 +30,27 @@ const seedData = async () => {
       }))
     );
 
-    // Seed users
+    // Seed users (passwords will be hashed)
+    const hashedAdminPassword = await bcrypt.hash("admin123", 10);
+    const hashedCustomerPassword = await bcrypt.hash("pass123", 10);
+
     await User.insertMany([
       {
         name: "Admin User",
         email: "admin@example.com",
-        password: "admin123", // Plain text, as per model
+        password: hashedAdminPassword,
         role: "admin"
       },
       {
         name: "Customer One",
         email: "customer1@example.com",
-        password: "pass123",
+        password: hashedCustomerPassword,
         role: "customer"
       },
       {
         name: "Customer Two",
         email: "customer2@example.com",
-        password: "pass123",
+        password: hashedCustomerPassword,
         role: "customer"
       }
     ]);

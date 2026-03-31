@@ -2,8 +2,21 @@ const Product = require("../models/Product");
 
 const getProducts = async (req, res) => {
   try {
-    const { category } = req.query;
-    const filter = category ? { category } : {};
+    const { category, search } = req.query;
+
+    const filter = {};
+    if (category) {
+      filter.category = category;
+    }
+
+    if (search) {
+      const searchRegex = new RegExp(search.trim(), 'i');
+      filter.$or = [
+        { name: searchRegex },
+        { description: searchRegex },
+        { category: searchRegex }
+      ];
+    }
 
     const products = await Product.find(filter).sort({ createdAt: -1 });
 

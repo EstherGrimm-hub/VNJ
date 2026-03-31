@@ -1,4 +1,5 @@
 const User = require("../models/User");
+const bcrypt = require("bcrypt");
 
 const getCustomers = async (req, res) => {
   try {
@@ -67,10 +68,12 @@ const createUser = async (req, res) => {
       });
     }
 
+    const hashedPassword = await bcrypt.hash(password, 10);
+
     const newUser = await User.create({
       name: name.trim(),
       email: email.trim().toLowerCase(),
-      password,
+      password: hashedPassword,
       role
     });
 
@@ -95,18 +98,40 @@ const createUser = async (req, res) => {
 const updateUser = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name } = req.body;
+    const { name, email, password } = req.body;
 
-    if (!name || name.trim() === "") {
+    const updateData = {};
+
+    if (name && name.trim() !== "") {
+      updateData.name = name.trim();
+    }
+
+    if (email && email.trim() !== "") {
+      updateData.email = email.trim().toLowerCase();
+      const existing = await User.findOne({ email: updateData.email, _id: { $ne: id } });
+      if (existing) {
+        return res.status(400).json({
+          success: false,
+          message: "Email đã tồn tại, không thể cập nhật."
+        });
+      }
+    }
+
+    if (password && password.trim() !== "") {
+      const hashedPassword = await bcrypt.hash(password.trim(), 10);
+      updateData.password = hashedPassword;
+    }
+
+    if (Object.keys(updateData).length === 0) {
       return res.status(400).json({
         success: false,
-        message: "Tên không được để trống."
+        message: "Cần ít nhất 1 trường để cập nhật (name/email/password)."
       });
     }
 
     const updatedUser = await User.findByIdAndUpdate(
       id,
-      { name: name.trim() },
+      updateData,
       { new: true, runValidators: true, select: "-password" }
     );
 

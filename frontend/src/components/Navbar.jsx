@@ -7,7 +7,10 @@ export default function Navbar({
   cartCount,
   onCartClick,
   onOpenAuth,
-  onLogout
+  onLogout,
+  searchTerm,
+  onSearchTermChange,
+  onSearch
 }) {
   return (
     <header className="site-header">
@@ -36,11 +39,20 @@ export default function Navbar({
             ))}
           </nav>
 
-          <div className="nav-actions">
-            <a href="#">
+          <div className="nav-search">
+            <input
+              type="text"
+              placeholder="Search products..."
+              value={searchTerm}
+              onChange={(e) => onSearchTermChange(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && onSearch()}
+            />
+            <button type="button" onClick={onSearch} aria-label="Tìm kiếm">
               <i className="fa-solid fa-magnifying-glass"></i>
-            </a>
+            </button>
+          </div>
 
+          <div className="nav-actions">
             {currentUser ? (
               <>
                 <Link to="/account" className="user-link">

@@ -1,5 +1,6 @@
 const User = require("../models/User");
 const jwt = require('jsonwebtoken');
+const bcrypt = require('bcrypt');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret_here';
 
@@ -15,11 +16,19 @@ const login = async (req, res) => {
     }
 
     const user = await User.findOne({
-      email: email.trim().toLowerCase(),
-      password
+      email: email.trim().toLowerCase()
     });
 
     if (!user) {
+      return res.status(401).json({
+        success: false,
+        message: "Sai email hoặc mật khẩu!"
+      });
+    }
+
+    const passwordMatch = await bcrypt.compare(password, user.password);
+
+    if (!passwordMatch) {
       return res.status(401).json({
         success: false,
         message: "Sai email hoặc mật khẩu!"
@@ -67,10 +76,12 @@ const register = async (req, res) => {
       });
     }
 
+    const hashedPassword = await bcrypt.hash(password, 10);
+
     const newUser = await User.create({
       name: name.trim(),
       email: email.trim().toLowerCase(),
-      password,
+      password: hashedPassword,
       role: "customer"
     });
 
