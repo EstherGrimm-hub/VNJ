@@ -8,7 +8,7 @@
 
 .top-bar {
   background: #0056b3; /* Xanh đậm hơn */
-  color: #fff;
+  color: #e4d9d9;
   font-size: 11px;
 }
 
@@ -91,8 +91,8 @@
 }
 
 .nav-search button {
-  width: 42px;
-  height: 42px;
+  width: 30px;
+  height: 30px;
   border: none;
   background: #111;
   color: #fff;
@@ -170,13 +170,30 @@
 body {
   margin: 0;
   font-family: 'Inter', sans-serif;
-  background: #f8f8f8;
+  background: #f3f4f7;
   color: #121212;
 }
 
 main {
-  background: #f3f3f3;
+  background: #f3f4f7;
   color: #111;
+  min-height: calc(100vh - 120px);
+}
+
+.site-header,
+.site-footer {
+  background: #f3f4f7;
+}
+
+.site-content {
+  min-width: 320px;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+section {
+  padding-top: 32px;
+  padding-bottom: 32px;
 }
 
 .container,
@@ -321,7 +338,7 @@ img {
 
 .category-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 14px;
 }
 
@@ -368,7 +385,7 @@ img {
 
 .product-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 22px;
 }
 
@@ -516,6 +533,13 @@ input {
   max-width: 1240px;
   margin: 0 auto;
   padding: 0 16px;
+  background: transparent;
+}
+
+.page-shell,
+.container {
+  border-left: 1px solid rgba(0, 0, 0, 0.04);
+  border-right: 1px solid rgba(0, 0, 0, 0.04);
 }
 
 /* HEADER */
@@ -524,7 +548,8 @@ input {
 }
 
 .top-bar {
-  background: #000;
+  display: none;
+  background: transparent;
   color: #fff;
   font-size: 10px;
 }
@@ -538,7 +563,10 @@ input {
 
 .main-navbar {
   background: #fff;
-  border-radius: 18px 18px 0 0;
+  border-radius: 0;
+  box-shadow: 0 2px 18px rgba(0, 0, 0, 0.08);
+  border-left: 1px solid rgba(0, 0, 0, 0.05);
+  border-right: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 .nav-inner {
@@ -2261,7 +2289,7 @@ font-weight:500;
 
 .brand-strip {
   display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
   align-items: center;
   gap: 22px;
   padding: 26px 0;
@@ -2386,11 +2414,14 @@ font-weight:500;
 }
 
 .top-bar {
-  display: block !important;
-  background: #000 !important;
-  color: #fff !important;
+  display: none !important;
+  background: transparent !important;
+  color: transparent !important;
 }
 
+.top-bar-inner {
+  display: none !important;
+}
 .top-bar-inner {
   display: flex !important;
   align-items: center !important;

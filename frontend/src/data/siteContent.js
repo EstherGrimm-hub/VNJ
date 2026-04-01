@@ -68,8 +68,7 @@ export const siteContent = {
 
   topBar: {
     text: "Enjoy free shipping on all order this week! Shop Now",
-    currency: "USD $",
-    language: "English"
+    background: "#d6d2d2",
   },
 
   nav: {
