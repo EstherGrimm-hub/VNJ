@@ -1,66 +1,65 @@
 # VN-J - Shop
 
+## Table of Contents
 
-## Mục lục
-
-- [Tính năng](#tính-năng)
-- [Công nghệ sử dụng](#công-nghệ-sử-dụng)
-- [Yêu cầu hệ thống](#yêu-cầu-hệ-thống)
-- [Cài đặt](#cài-đặt)
-- [Cấu hình](#cấu-hình)
-- [Chạy ứng dụng](#chạy-ứng-dụng)
-- [Seed dữ liệu](#seed-dữ-liệu)
-- [Cấu trúc dự án](#cấu-trúc-dự-án)
+- [Features](#features)
+- [Technologies Used](#technologies-used)
+- [System Requirements](#system-requirements)
+- [Installation](#installation)
+- [Configuration](#configuration)
+- [Running the Application](#running-the-application)
+- [Seeding Data](#seeding-data)
+- [Project Structure](#project-structure)
 - [API Endpoints](#api-endpoints)
-- [Cách sử dụng](#cách-sử-dụng)
-- [Đóng góp](#đóng-góp)
-- [Giấy phép](#giấy-phép)
+- [Usage](#usage)
+- [Contributing](#contributing)
+- [License](#license)
 
-## Tính năng
+## Features
 
 ### Backend (Node.js/Express)
-- Xác thực người dùng (JWT)
-- Quản lý sản phẩm (CRUD)
-- Quản lý đơn hàng
-- Hệ thống mã giảm giá (coupons)
-- Đánh giá sản phẩm (reviews)
-- Phân quyền (Admin/Customer)
-- Kết nối MongoDB
+- User authentication (JWT)
+- Product management (CRUD)
+- Order management
+- Coupon system
+- Product reviews
+- Role-based access (Admin/Customer)
+- MongoDB connection
 
 ### Frontend (React/Vite)
-- Giao diện responsive
-- Xác thực người dùng
-- Danh sách sản phẩm
-- Giỏ hàng nhanh
-- Trang thanh toán
-- Quản lý tài khoản
-- Quản trị viên (Admin panel)
-- Tìm kiếm sản phẩm
+- Responsive interface
+- User authentication
+- Product listing
+- Quick cart
+- Checkout page
+- Account management
+- Admin panel
+- Product search
 
-## Công nghệ sử dụng
+## Technologies Used
 
 ### Backend
-- **Node.js** - Runtime JavaScript
-- **Express.js** - Framework web
-- **MongoDB** - Cơ sở dữ liệu NoSQL
-- **Mongoose** - ODM cho MongoDB
-- **JWT** - Xác thực JSON Web Token
-- **bcrypt** - Mã hóa mật khẩu
+- **Node.js** - JavaScript runtime
+- **Express.js** - Web framework
+- **MongoDB** - NoSQL database
+- **Mongoose** - MongoDB ODM
+- **JWT** - JSON Web Token authentication
+- **bcrypt** - Password hashing
 - **CORS** - Cross-Origin Resource Sharing
 
 ### Frontend
-- **React 19** - Library JavaScript
-- **Vite** - Build tool và dev server
-- **React Router** - Routing cho SPA
-- **ESLint** - Linting code
+- **React 19** - JavaScript library
+- **Vite** - Build tool and dev server
+- **React Router** - SPA routing
+- **ESLint** - Code linting
 
-## Yêu cầu hệ thống
+## System Requirements
 
 - **Node.js** >= 16.0.0
-- **MongoDB** >= 4.0 (hoặc MongoDB Atlas)
-- **npm** hoặc **yarn**
+- **MongoDB** >= 4.0 (or MongoDB Atlas)
+- **npm** or **yarn**
 
-## Cài đặt
+## Installation
 
 ### 1. Clone repository
 ```bash
@@ -68,88 +67,88 @@ git clone https://github.com/EstherGrimm-hub/VNJ.git
 cd VNJ
 ```
 
-### 2. Cài đặt dependencies cho Backend
+### 2. Install backend dependencies
 ```bash
 cd backend
 npm install
 ```
 
-### 3. Cài đặt dependencies cho Frontend
+### 3. Install frontend dependencies
 ```bash
 cd ../frontend
 npm install
 ```
 
-## Cấu hình
+## Configuration
 
 ### Backend
-1. Tạo file `.env` trong thư mục `backend/`:
+1. Create `.env` file in the `backend/` directory:
 ```env
 PORT=5000
 MONGO_URI=mongodb://127.0.0.1:27017/foodapp
 ```
 
-2. Đảm bảo MongoDB đang chạy trên máy local hoặc cập nhật `MONGO_URI` cho MongoDB Atlas.
+2. Ensure MongoDB is running locally or update `MONGO_URI` for MongoDB Atlas.
 
 ### Frontend
-Không cần cấu hình đặc biệt. Frontend sẽ kết nối tới backend qua `http://localhost:5000`.
+No special configuration needed. Frontend will connect to backend via `http://localhost:5000`.
 
-## Chạy ứng dụng
+## Running the Application
 
-### Chạy Backend
+### Run Backend
 ```bash
 cd backend
-npm run dev  # Chạy với nodemon (development)
-# hoặc
-npm start    # Chạy với node (production)
+npm run dev  # Run with nodemon (development)
+# or
+npm start    # Run with node (production)
 ```
 
-Backend sẽ chạy trên `http://localhost:5000`
+Backend will run on `http://localhost:5000`
 
-### Chạy Frontend
+### Run Frontend
 ```bash
 cd frontend
 npm run dev
 ```
 
-Frontend sẽ chạy trên `http://localhost:5173` (mặc định của Vite)
+Frontend will run on `http://localhost:5173` (Vite default)
 
-### Truy cập ứng dụng
+### Access the application
 - Frontend: http://localhost:5173
 - Backend API: http://localhost:5000
 
-## Seed dữ liệu
+## Seeding Data
 
-Để tạo dữ liệu mẫu (sản phẩm, mã giảm giá, tài khoản admin):
+To create sample data (products, coupons, admin accounts):
 
 ```bash
 cd backend
 npm run seed
 ```
 
-**Tài khoản mẫu:**
+**Sample accounts:**
 - **Admin:** admin@example.com / admin123
 - **Customer:** customer1@example.com / pass123
 
-## Cấu trúc dự án
+## Project Structure
 
 ```
 VNJ/
 ├── backend/
 │   ├── config/
-│   │   └── db.js                 # Kết nối MongoDB
-│   ├── controllers/              # Logic xử lý API
+│   │   └── db.js                 # MongoDB connection
+│   ├── controllers/              # API logic handlers
 │   │   ├── authController.js
 │   │   ├── productController.js
 │   │   ├── orderController.js
 │   │   ├── userController.js
 │   │   ├── couponController.js
 │   │   └── reviewController.js
-│   ├── data/                     # Dữ liệu mẫu
+│   ├── data/                     # Sample data
 │   │   ├── products.js
 │   │   └── coupons.js
 │   ├── middleware/
-│   │   └── auth.js               # Middleware xác thực
+│   │   └── auth.js               # Authentication middleware
 │   ├── models/                   # Mongoose schemas
 │   │   ├── User.js
 │   │   ├── Product.js
@@ -165,9 +164,9 @@ VNJ/
 │   │   └── reviewRoutes.js
 │   ├── utils/
 │   │   └── updateProductRating.js
-│   ├── .env                      # Biến môi trường
+│   ├── .env                      # Environment variables
 │   ├── package.json
-│   ├── seed.js                   # Script tạo dữ liệu mẫu
+│   ├── seed.js                   # Sample data script
 │   └── server.js                 # Entry point
 ├── frontend/
 │   ├── public/                   # Static assets
@@ -209,80 +208,80 @@ VNJ/
 ## API Endpoints
 
 ### Authentication
-- `POST /api/auth/register` - Đăng ký
-- `POST /api/auth/login` - Đăng nhập
-- `POST /api/auth/logout` - Đăng xuất
+- `POST /api/auth/register` - Register
+- `POST /api/auth/login` - Login
+- `POST /api/auth/logout` - Logout
 
 ### Products
-- `GET /api/products` - Lấy danh sách sản phẩm
-- `GET /api/products/:id` - Lấy chi tiết sản phẩm
-- `POST /api/products` - Tạo sản phẩm (Admin)
-- `PUT /api/products/:id` - Cập nhật sản phẩm (Admin)
-- `DELETE /api/products/:id` - Xóa sản phẩm (Admin)
+- `GET /api/products` - Get product list
+- `GET /api/products/:id` - Get product details
+- `POST /api/products` - Create product (Admin)
+- `PUT /api/products/:id` - Update product (Admin)
+- `DELETE /api/products/:id` - Delete product (Admin)
 
 ### Orders
-- `GET /api/orders` - Lấy đơn hàng của user
-- `GET /api/orders/user/:userId` - Lấy đơn hàng theo user
-- `POST /api/orders` - Tạo đơn hàng
-- `PUT /api/orders/:id` - Cập nhật trạng thái đơn hàng (Admin)
+- `GET /api/orders` - Get user's orders
+- `GET /api/orders/user/:userId` - Get orders by user
+- `POST /api/orders` - Create order
+- `PUT /api/orders/:id` - Update order status (Admin)
 
 ### Users
-- `GET /api/users` - Lấy danh sách users (Admin)
-- `GET /api/users/:id` - Lấy thông tin user
-- `PUT /api/users/:id` - Cập nhật user
+- `GET /api/users` - Get user list (Admin)
+- `GET /api/users/:id` - Get user info
+- `PUT /api/users/:id` - Update user
 
 ### Coupons
-- `GET /api/coupons` - Lấy danh sách mã giảm giá
-- `POST /api/coupons` - Tạo mã giảm giá (Admin)
-- `PUT /api/coupons/:id` - Cập nhật mã giảm giá (Admin)
-- `DELETE /api/coupons/:id` - Xóa mã giảm giá (Admin)
+- `GET /api/coupons` - Get coupon list
+- `POST /api/coupons` - Create coupon (Admin)
+- `PUT /api/coupons/:id` - Update coupon (Admin)
+- `DELETE /api/coupons/:id` - Delete coupon (Admin)
 
 ### Reviews
-- `GET /api/reviews/product/:productId` - Lấy reviews của sản phẩm
-- `POST /api/reviews` - Tạo review
-- `PUT /api/reviews/:id` - Cập nhật review
-- `DELETE /api/reviews/:id` - Xóa review
+- `GET /api/reviews/product/:productId` - Get product reviews
+- `POST /api/reviews` - Create review
+- `PUT /api/reviews/:id` - Update review
+- `DELETE /api/reviews/:id` - Delete review
 
-## Cách sử dụng
+## Usage
 
-### Cho người dùng thông thường:
-1. Đăng ký tài khoản hoặc đăng nhập
-2. Duyệt sản phẩm trên trang chủ
-3. Thêm sản phẩm vào giỏ hàng
-4. Áp dụng mã giảm giá (nếu có)
-5. Thanh toán đơn hàng
-6. Xem lịch sử đơn hàng trong tài khoản
+### For regular users:
+1. Register an account or login
+2. Browse products on the homepage
+3. Add products to cart
+4. Apply discount codes (if available)
+5. Checkout order
+6. View order history in account
 
-### Cho Admin:
-1. Đăng nhập với tài khoản admin
-2. Truy cập trang Admin để:
-   - Quản lý sản phẩm (thêm/sửa/xóa)
-   - Quản lý đơn hàng (xem/cập nhật trạng thái)
-   - Quản lý mã giảm giá
-   - Xem danh sách khách hàng
+### For Admin:
+1. Login with admin account
+2. Access Admin page to:
+   - Manage products (add/edit/delete)
+   - Manage orders (view/update status)
+   - Manage discount codes
+   - View customer list
 
-### Tính năng tìm kiếm:
-- Sử dụng thanh tìm kiếm trên navbar
-- Tìm theo tên sản phẩm
+### Search feature:
+- Use the search bar on navbar
+- Search by product name
 
-### Giỏ hàng:
-- Thêm sản phẩm từ trang chi tiết hoặc danh sách
-- Xem giỏ hàng nhanh từ icon trên navbar
-- Chỉnh sửa số lượng hoặc xóa sản phẩm
+### Cart:
+- Add products from detail page or list
+- View quick cart from navbar icon
+- Edit quantity or remove products
 
-## Đóng góp
+## Contributing
 
-1. Fork dự án
-2. Tạo branch cho feature mới (`git checkout -b feature/AmazingFeature`)
+1. Fork the project
+2. Create a branch for new feature (`git checkout -b feature/AmazingFeature`)
 3. Commit changes (`git commit -m 'Add some AmazingFeature'`)
 4. Push to branch (`git push origin feature/AmazingFeature`)
-5. Tạo Pull Request
+5. Create Pull Request
 
-## Giấy phép
+## License
 
-Dự án này sử dụng giấy phép ISC. Xem file `LICENSE` để biết thêm chi tiết.
+This project uses the ISC license. See the `LICENSE` file for more details.
 
 ---
 
-**Lưu ý:** Đây là dự án demo cho mục đích học tập. Không sử dụng trong môi trường production mà chưa được kiểm tra bảo mật đầy đủ.</content>
+**Note:** This is a demo project for educational purposes. Do not use in production environment without thorough security checks.</content>
 <parameter name="filePath">e:\New Programming Language\VNJ\README.md
