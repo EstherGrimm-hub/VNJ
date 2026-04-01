@@ -3,11 +3,11 @@
   width: 100%;
   position: relative;
   z-index: 1000;
-  background: #fff;
+  background: #007bff; /* Màu xanh dương như cũ */
 }
 
 .top-bar {
-  background: #000;
+  background: #0056b3; /* Xanh đậm hơn */
   color: #fff;
   font-size: 11px;
 }
@@ -26,7 +26,7 @@
 }
 
 .main-navbar {
-  background: #fff;
+  background: #f8f9fa; /* Xám nhạt như cũ */
   border-bottom: 1px solid #eee;
 }
 
@@ -170,8 +170,40 @@
 body {
   margin: 0;
   font-family: 'Inter', sans-serif;
-  background: #1e1e1f;
+  background: #f8f8f8;
+  color: #121212;
 }
+
+main {
+  background: #f3f3f3;
+  color: #111;
+}
+
+.container,
+.admin-panel,
+.product-card,
+.hero-content,
+.quick-cart,
+.auth-box {
+  background: #ffffff;
+  color: #111;
+  border-radius: 10px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+}
+
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
+}
+
+.page-shell,
+.admin-panel,
+.auth-box {
+  background-color: #fff;
+}
+
 
 .page-shell {
   width: 100%;
