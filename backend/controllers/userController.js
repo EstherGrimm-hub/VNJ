@@ -1,4 +1,5 @@
 const User = require("../models/User");
+const Product = require("../models/Product");
 const bcrypt = require("bcrypt");
 
 const getCustomers = async (req, res) => {
@@ -37,6 +38,78 @@ const getAllUsers = async (req, res) => {
     });
   }
 };
+
+const getWishlist = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).populate("wishlist");
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    return res.json({
+      success: true,
+      wishlist: user.wishlist || []
+    });
+  } catch (error) {
+    console.error("getWishlist error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Lỗi server khi lấy wishlist."
+    });
+  }
+};
+
+const addToWishlist = async (req, res) => {
+  try {
+    const { productId } = req.params;
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    const product = await Product.findById(productId);
+    if (!product) {
+      return res.status(404).json({ success: false, message: "Product not found" });
+    }
+
+    const already = user.wishlist.some((item) => item.toString() === productId);
+    if (already) {
+      return res.status(400).json({ success: false, message: "Product already in wishlist." });
+    }
+
+    user.wishlist.push(productId);
+    await user.save();
+
+    return res.json({ success: true, message: "Added to wishlist.", wishlist: user.wishlist });
+  } catch (error) {
+    console.error("addToWishlist error:", error);
+    return res.status(500).json({ success: false, message: "Lỗi server khi thêm wishlist." });
+  }
+};
+
+const removeFromWishlist = async (req, res) => {
+  try {
+    const { productId } = req.params;
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    const exists = user.wishlist.some((item) => item.toString() === productId);
+    if (!exists) {
+      return res.status(404).json({ success: false, message: "Product not in wishlist." });
+    }
+
+    user.wishlist = user.wishlist.filter((item) => item.toString() !== productId);
+    await user.save();
+
+    return res.json({ success: true, message: "Removed from wishlist.", wishlist: user.wishlist });
+  } catch (error) {
+    console.error("removeFromWishlist error:", error);
+    return res.status(500).json({ success: false, message: "Lỗi server khi xóa wishlist." });
+  }
+};
+
 
 const createUser = async (req, res) => {
   try {
@@ -229,5 +302,8 @@ module.exports = {
   createUser,
   updateUser,
   deleteUser,
-  updateUserRole
+  updateUserRole,
+  getWishlist,
+  addToWishlist,
+  removeFromWishlist
 };

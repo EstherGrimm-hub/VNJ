@@ -12,6 +12,7 @@ import Account from "./pages/Account";
 import AddProductPage from "./pages/AddProductPage";
 import AdminRolePage from "./pages/AdminRolePage";
 import ProductListPage from "./pages/ProductListPage";
+import WishlistPage from "./pages/WishlistPage";
 import { getCurrentUser, clearCurrentUser } from "./utils/storage";
 
 export default function App() {
@@ -76,6 +77,15 @@ export default function App() {
           path="/account"
           element={
             <Account
+              currentUser={currentUser}
+              onLogout={handleLogout}
+            />
+          }
+        />
+        <Route
+          path="/wishlist"
+          element={
+            <WishlistPage
               currentUser={currentUser}
               onLogout={handleLogout}
             />

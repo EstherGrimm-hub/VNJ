@@ -11,6 +11,7 @@ import {
   saveBuyNowItem
 } from "../utils/storage";
 import { fetchProductById, fetchProducts } from "../services/productService";
+import { addToWishlist, removeFromWishlist, fetchWishlist } from "../services/userServices";
 
 export default function ProductPage() {
   const { id } = useParams();
@@ -28,6 +29,7 @@ export default function ProductPage() {
   const [quantity, setQuantity] = useState(1);
 
   const currentUser = getCurrentUser();
+  const [inWishlist, setInWishlist] = useState(false);
   const [reviews, setReviews] = useState([]);
 const [reviewRating, setReviewRating] = useState(5);
 const [reviewComment, setReviewComment] = useState("");
@@ -119,6 +121,21 @@ const handleSubmitReview = async () => {
       if (loadedProduct?._id) {
         await loadReviews(loadedProduct._id);
       }
+
+      if (currentUser && loadedProduct?._id) {
+        try {
+          const wishlistRes = await fetchWishlist();
+          if (wishlistRes.success && Array.isArray(wishlistRes.wishlist)) {
+            const exists = wishlistRes.wishlist.some(
+              (item) => item._id === loadedProduct._id || item.id === loadedProduct.id
+            );
+            setInWishlist(exists);
+          }
+        } catch (error) {
+          console.error("loadWishlistState error:", error);
+          setInWishlist(false);
+        }
+      }
     } else {
       setProduct(null);
       setReviews([]);
@@ -193,6 +210,34 @@ const handleSubmitReview = async () => {
 
     saveBuyNowItem(buyNowItem);
     navigate("/checkout");
+  };
+
+  const handleWishlistToggle = async () => {
+    if (!currentUser) {
+      alert("Vui lòng đăng nhập để sử dụng wishlist.");
+      return;
+    }
+
+    try {
+      if (inWishlist) {
+        const result = await removeFromWishlist(product._id);
+        if (result.success) {
+          setInWishlist(false);
+        } else {
+          alert(result.message || "Không thể xóa khỏi wishlist.");
+        }
+      } else {
+        const result = await addToWishlist(product._id);
+        if (result.success) {
+          setInWishlist(true);
+        } else {
+          alert(result.message || "Không thể thêm vào wishlist.");
+        }
+      }
+    } catch (error) {
+      console.error("handleWishlistToggle error:", error);
+      alert("Đã xảy ra lỗi khi cập nhật wishlist.");
+    }
   };
 
   return (
@@ -315,6 +360,13 @@ const handleSubmitReview = async () => {
                 +
               </button>
             </div>
+
+            <button
+              className={`wishlist-button ${inWishlist ? "in-wishlist" : ""}`}
+              onClick={handleWishlistToggle}
+            >
+              {inWishlist ? "Remove from Wishlist" : "Add to Wishlist"}
+            </button>
 
             <button className="add-cart" onClick={handleAddToCart}>
               Add To Cart

@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { CartesianGrid, Line, LineChart, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import QuickCart from "../components/QuickCart";
@@ -254,9 +255,27 @@ export default function AdminPage({ currentUser, onLogout }) {
                       </div>
 
                       <div className="admin-chart-placeholder">
-                        <div className="simple-chart">
-                          {renderRevenueBars(revenueLast7Days)}
-                        </div>
+                        <ResponsiveContainer width="100%" height={250}>
+                          <LineChart data={revenueLast7Days} margin={{ top: 5, right: 30, left: 0, bottom: 5 }}>
+                            <CartesianGrid stroke="#e0e0e0" strokeDasharray="5 5" />
+                            <XAxis dataKey="label" stroke="#666" style={{ fontSize: "12px" }} />
+                            <YAxis stroke="#666" style={{ fontSize: "12px" }} />
+                            <Tooltip 
+                              contentStyle={{ backgroundColor: "#fff", border: "1px solid #ccc", borderRadius: "6px" }}
+                              formatter={(value) => formatPrice(value)}
+                            />
+                            <Legend />
+                            <Line 
+                              type="monotone" 
+                              dataKey="total" 
+                              stroke="#2563eb" 
+                              dot={{ fill: "#2563eb", r: 5 }}
+                              activeDot={{ r: 7 }}
+                              strokeWidth={2}
+                              name="Revenue"
+                            />
+                          </LineChart>
+                        </ResponsiveContainer>
                       </div>
                     </div>
 

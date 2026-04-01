@@ -71,9 +71,10 @@ export default function Navbar({
               </button>
             )}
 
-            <a href="#">
+            <Link to="/wishlist" className="signin-link" style={{ color: "inherit" }}>
               <i className="fa-regular fa-heart"></i>
-            </a>
+              <span>Wishlist</span>
+            </Link>
 
             <button type="button" className="cart-btn" onClick={onCartClick}>
               <div className="cart-icon">

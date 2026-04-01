@@ -39,3 +39,50 @@ export async function updateUserRole(userId, role) {
 
   return res.json();
 }
+
+export async function fetchWishlist() {
+  const res = await fetch(`${API_URL}/wishlist`, {
+    headers: getAuthHeaders()
+  });
+
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    const error = new Error(errorData.message || `HTTP ${res.status}`);
+    error.status = res.status;
+    throw error;
+  }
+
+  return res.json();
+}
+
+export async function addToWishlist(productId) {
+  const res = await fetch(`${API_URL}/wishlist/${productId}`, {
+    method: "POST",
+    headers: getAuthHeaders()
+  });
+
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    const error = new Error(errorData.message || `HTTP ${res.status}`);
+    error.status = res.status;
+    throw error;
+  }
+
+  return res.json();
+}
+
+export async function removeFromWishlist(productId) {
+  const res = await fetch(`${API_URL}/wishlist/${productId}`, {
+    method: "DELETE",
+    headers: getAuthHeaders()
+  });
+
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    const error = new Error(errorData.message || `HTTP ${res.status}`);
+    error.status = res.status;
+    throw error;
+  }
+
+  return res.json();
+}
