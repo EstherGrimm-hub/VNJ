@@ -95,15 +95,7 @@ export default function SearchPage({ currentUser, onLogout }) {
             </div>
           )}
 
-          <div style={{ marginTop: "20px" }}>
-            <button
-              className="view-all"
-              type="button"
-              onClick={() => navigate("/")}
-            >
-              Quay về trang chủ
-            </button>
-          </div>
+          
         </section>
       </main>
 

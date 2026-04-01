@@ -114,6 +114,11 @@ export default function AddProductPage({ isModal, onClose, onProductAdded, produ
       return;
     }
 
+    if (payload.price < 0 || payload.oldPrice < 0 || payload.stock < 0) {
+      alert("Giá và tồn kho không được âm.");
+      return;
+    }
+
     if (productToEdit) {
       if (onProductUpdated) {
         setSubmitting(true);
@@ -197,6 +202,7 @@ export default function AddProductPage({ isModal, onClose, onProductAdded, produ
                       value={form.price}
                       onChange={handleChange}
                       placeholder="0"
+                      min="0"
                       required
                     />
                   </div>
@@ -209,6 +215,7 @@ export default function AddProductPage({ isModal, onClose, onProductAdded, produ
                       value={form.oldPrice}
                       onChange={handleChange}
                       placeholder="0"
+                      min="0"
                     />
                   </div>
 
@@ -220,6 +227,7 @@ export default function AddProductPage({ isModal, onClose, onProductAdded, produ
                       value={form.stock}
                       onChange={handleChange}
                       placeholder="0"
+                      min="0"
                     />
                   </div>
                 </div>
